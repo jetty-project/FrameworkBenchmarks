@@ -1,0 +1,6 @@
+!bin/
+.dart_tool
+.packages
+*.reflectable.dart
+*.g.part
+*.g.dart

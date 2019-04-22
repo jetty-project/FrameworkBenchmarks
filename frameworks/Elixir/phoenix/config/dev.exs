@@ -23,11 +23,10 @@ config :hello, Hello.Endpoint,
   ]
 
 config :hello, Hello.Repo,
-  adapter: Ecto.Adapters.MySQL,
   username: "benchmarkdbuser",
   password: "benchmarkdbpass",
   database: "hello_world",
-  hostname: "localhost"
+  hostname: "tfb-database"
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"

@@ -1,13 +1,25 @@
-var cluster = require('cluster');
-var numCPUs = require('os').cpus().length;
+const cluster = require('cluster');
+const numCPUs = require('os').cpus().length;
+
+process.env.NODE_HANDLER = 'mysql-raw';
+
+if (process.env.TFB_TEST_NAME === 'nodejs-mongodb') {
+  process.env.NODE_HANDLER = 'mongoose';
+} else if (process.env.TFB_TEST_NAME === 'nodejs-mongodb-raw') {
+  process.env.NODE_HANDLER = 'mongodb-raw';
+} else if (process.env.TFB_TEST_NAME === 'nodejs-mysql') {
+  process.env.NODE_HANDLER = 'sequelize';
+} else if (process.env.TFB_TEST_NAME === 'nodejs-postgres') {
+  process.env.NODE_HANDLER = 'sequelize-postgres';
+}
 
 if (cluster.isMaster) {
   // Fork workers.
-  for (var i = 0; i < numCPUs; i++) {
+  for (let i = 0; i < numCPUs; i++) {
     cluster.fork();
   }
 
-  cluster.on('exit', function (worker, code, signal) {
+  cluster.on('exit', (worker, code, signal) => {
   	console.log([
   	  'A process exit was triggered, most likely due to a failed database action',
   	  'NodeJS test server shutting down now'].join('\n'));

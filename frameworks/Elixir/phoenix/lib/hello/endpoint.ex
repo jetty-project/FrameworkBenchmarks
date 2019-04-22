@@ -1,32 +1,10 @@
 defmodule Hello.Endpoint do
   use Phoenix.Endpoint, otp_app: :hello
 
-  # Serve at "/" the given assets from "priv/static" directory
-  plug Plug.Static,
-    at: "/", from: :hello, gzip: false,
-    only: ~w(css images js favicon.ico robots.txt)
-
-  # Code reloading will only work if the :code_reloader key of
-  # the :phoenix application is set to true in your config file.
-  if code_reloading? do
-    plug Phoenix.LiveReloader
-    plug Phoenix.CodeReloader
-  end
-
-  plug Plug.Logger
-
   plug Plug.Parsers,
-    parsers: [:urlencoded, :multipart, :json],
+    parsers: [:json, :urlencoded, :multipart],
     pass: ["*/*"],
-    json_decoder: Poison
+    json_decoder: Jason
 
-  plug Plug.MethodOverride
-  plug Plug.Head
-
-  plug Plug.Session,
-    store: :cookie,
-    key: "_hello_key",
-    signing_salt: "DNlAnJ2o"
-
-  plug :router, Hello.Router
+  plug Hello.Router
 end

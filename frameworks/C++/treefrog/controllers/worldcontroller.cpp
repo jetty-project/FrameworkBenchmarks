@@ -1,10 +1,7 @@
 #include "worldcontroller.h"
 #include "world.h"
+#include "mngworld.h"
 
-
-WorldController::WorldController(const WorldController &)
-    : ApplicationController()
-{ }
 
 void WorldController::index()
 {
@@ -15,6 +12,7 @@ void WorldController::index()
 
 void WorldController::plain()
 {
+    setContentType("text/plain");
     renderText(QLatin1String("Hello, World!"));
 }
 
@@ -32,23 +30,21 @@ void WorldController::queries()
 
 void WorldController::queries(const QString &num)
 {
-    QList<QVariantMap> worlds;
+    QVariantList worlds;
     int d = qMin(qMax(num.toInt(), 1), 500);
 
     for (int i = 0; i < d; ++i) {
         int id = Tf::random(9999) + 1;
         worlds << World::get(id).toVariantMap();
     }
-    setContentType("application/json; charset=UTF-8");
-    renderText(jsonEncode(worlds), false);
+    renderJson(worlds);
 }
 
 void WorldController::random()
 {
     int id = Tf::random(9999) + 1;
     World world = World::get(id);
-    setContentType("application/json; charset=UTF-8");
-    renderText(jsonEncode(world.toVariantMap()), false);
+    renderJson(world.toVariantMap());
 }
 
 void WorldController::entry()
@@ -125,10 +121,15 @@ void WorldController::renderEdit(const QVariantMap &world)
     render("edit");
 }
 
+void WorldController::updates()
+{
+    updates("1");
+}
+
 void WorldController::updates(const QString &num)
 {
-    QList<QVariantMap> worlds;
-    int d = num.toInt();
+    QVariantList worlds;
+    int d = qMin(qMax(num.toInt(), 1), 500);
     World world;
 
     for (int i = 0; i < d; ++i) {
@@ -136,10 +137,9 @@ void WorldController::updates(const QString &num)
         world = World::get(id);
         world.setRandomNumber( Tf::random(9999) + 1 );
         world.update();
-	worlds << world.toVariantMap();
+        worlds << world.toVariantMap();
     }
-    setContentType("application/json; charset=UTF-8");
-    renderText(jsonEncode(worlds), false);
+    renderJson(worlds);
 }
 
 void WorldController::remove(const QString &pk)
@@ -154,5 +154,54 @@ void WorldController::remove(const QString &pk)
 }
 
 
+
+/*
+  MongoDB
+ */
+void WorldController::mqueries()
+{
+    mqueries("1");
+}
+
+void WorldController::mqueries(const QString &num)
+{
+    QVariantList worlds;
+    int d = qMin(qMax(num.toInt(), 1), 500);
+
+    for (int i = 0; i < d; ++i) {
+        QString id = QString::number(Tf::random(9999) + 1);
+        worlds << MngWorld::get(id).toVariantMap();
+    }
+    renderJson(worlds);
+}
+
+void WorldController::mrandom()
+{
+    int id = Tf::random(9999) + 1;
+    World world = World::get(id);
+    renderJson(world.toVariantMap());
+}
+
+void WorldController::mupdates()
+{
+    mupdates("1");
+}
+
+void WorldController::mupdates(const QString &num)
+{
+    QVariantList worlds;
+    int d = qMin(qMax(num.toInt(), 1), 500);
+    MngWorld world;
+
+    for (int i = 0; i < d; ++i) {
+        QString id = QString::number(Tf::random(9999) + 1);
+        world = MngWorld::get(id);
+        world.setRandomNumber( Tf::random(9999) + 1 );
+        world.update();
+        worlds << world.toVariantMap();
+    }
+    renderJson(worlds);
+}
+
 // Don't remove below this line
-T_REGISTER_CONTROLLER(worldcontroller)
+T_DEFINE_CONTROLLER(WorldController)

@@ -1,83 +1,56 @@
-var Hapi = require('hapi');
-var server = new Hapi.Server();
-server.connection({port: 8080});
-server.views({
-  engines: {
-    hbs: require('handlebars')
-  },
-  path: __dirname + '/views',
-  compileOptions: {
-    pretty: false
+/**
+ * Currently commenting out redis caching as there is no
+ * working implementation for the benchmark suite.
+ */
+
+const Hapi = require('hapi');
+const Vision = require('vision');
+
+const options = {
+  connections: {
+    compression: false
   }
+};
+
+const server = new Hapi.Server(options);
+
+server.connection({port: process.env.PORT || 8080, host: '0.0.0.0'});
+server.register(Vision, (err) => {
+    if (err) {
+        throw err;
+    }
+
+    server.views({
+        engines: { html: require('handlebars') },
+        path: __dirname + '/views/'
+    });
 });
 
-var Promise = require('bluebird');
-var MongooseHandler;
-var SequelizeHandler;
-var SequelizePgHandler;
-var RedisHandler;
+const Handler = require(`./handlers/${process.env.NODE_HANDLER}`);
 
-// Slight start-up improvement loading handlers in parallel
-Promise.join(
-  require('./handlers/mongoose'),
-  require('./handlers/sequelize'),
-  require('./handlers/sequelize-postgres'),
-  require('./handlers/redis'),
-  function (mongo, mysql, pg, redis) {
-    MongooseHandler = mongo;
-    SequelizeHandler = mysql;
-    SequelizePgHandler = pg;
-    RedisHandler = redis;
-  })
-  .catch(function (err) {
-    console.log('There was a problem setting up the handlers');
-    process.exit(1);
-  });
+// Makes routing simpler as tfb routes are all GET's
+// We also don't use the nifty route features that Hapi has
+// to offer such as attaching a validator
+const Route = (path, handler) =>
+  server.route({ method: 'GET', path, handler });
+
+const JsonSerialization = (req, reply) =>
+  reply({ message: 'Hello, World!' }).header('Server', 'hapi');
+
+const Plaintext = (req, reply) =>
+  reply('Hello, World!')
+    .header('Server', 'hapi')
+    .header('Content-Type', 'text/plain');
 
 
 Route('/json', JsonSerialization);
 Route('/plaintext', Plaintext);
 
-Route('/mongoose/db', MongooseHandler.SingleQuery);
-Route('/mongoose/queries', MongooseHandler.MultipleQueries);
-Route('/mongoose/fortunes', MongooseHandler.Fortunes);
-Route('/mongoose/updates', MongooseHandler.Updates);
+Route('/db', Handler.SingleQuery);
+Route('/queries', Handler.MultipleQueries);
+Route('/fortunes', Handler.Fortunes);
+Route('/updates', Handler.Updates);
 
-Route('/sequelize/db', SequelizeHandler.SingleQuery);
-Route('/sequelize/queries', SequelizeHandler.MultipleQueries);
-Route('/sequelize/fortunes', SequelizeHandler.Fortunes);
-Route('/sequelize/updates', SequelizeHandler.Updates);
-
-Route('/sequelize-pg/db', SequelizePgHandler.SingleQuery);
-Route('/sequelize-pg/queries', SequelizePgHandler.MultipleQueries);
-Route('/sequelize-pg/fortunes', SequelizePgHandler.Fortunes);
-Route('/sequelize-pg/updates', SequelizePgHandler.Updates);
-
-Route('/hiredis/db', RedisHandler.SingleQuery);
-Route('/hiredis/queries', RedisHandler.MultipleQueries);
-Route('/hiredis/fortunes', RedisHandler.Fortunes);
-Route('/hiredis/updates', RedisHandler.Updates);
-
-
-function JsonSerialization(req, reply) {
-  reply({ message: 'Hello, World!' })
-    .header('Server', 'hapi');
-}
-
-function Plaintext(req, reply) {
-  reply('Hello, World!')
-    .header('Server', 'hapi')
-    .header('Content-Type', 'text/plain');
-}
-
-// Makes routing simpler as tfb routes are all GET's
-// We also don't use the nifty route features that Hapi has
-// to offer such as attaching a validator
-function Route(path, handler) {
-  server.route({ method: 'GET', path: path, handler: handler})
-}
-
-server.start(function (err) {
+server.start((err) =>
   console.log('Hapi worker started and listening on ' + server.info.uri + " "
-    + new Date().toISOString(" "));
-});
+    + new Date().toISOString(" ")));

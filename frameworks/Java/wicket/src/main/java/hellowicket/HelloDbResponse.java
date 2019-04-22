@@ -8,59 +8,56 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import javax.sql.DataSource;
 
-import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.http.WebResponse;
+import org.apache.wicket.request.resource.IResource;
 import org.apache.wicket.util.string.StringValue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class HelloDbResponse extends AbstractResource
+public class HelloDbResponse implements IResource
 {
   private static final long serialVersionUID = 1L;
 
   private static final int DB_ROWS = 10000;
+  private static final String TEXT_PLAIN = "text/plain";
 
-  private static final String CONTENT_TYPE = "application/json";
-  private static final ObjectMapper mapper = new ObjectMapper();
-
-  protected ResourceResponse newResourceResponse(Attributes attributes)
+  @Override
+  public void respond(Attributes attributes) 
   {
-    final StringValue queriesParam = attributes.getRequest().getQueryParameters().getParameterValue("queries");
-    int qs = queriesParam.toInt(1);
-    if (qs < 1)
-    {
-      qs = 1;
-    }
-    else if (qs > 500)
-    {
-      qs = 500;
-    }
-    final int queries = qs;
+	  final StringValue queriesParam = attributes.getRequest().getQueryParameters().getParameterValue("queries");
+	  int qs = queriesParam.toInt(1);
+	  if (qs < 1)
+	  {
+		  qs = 1;
+	  }
+	  else if (qs > 500)
+	  {
+		  qs = 500;
+	  }
+	  final int queries = qs;
+		
+	  try 
+	  {
+		byte[] data = getDataFromDatabase(queriesParam, queries);
 
-    final ResourceResponse response = new ResourceResponse();
-    response.setContentType(CONTENT_TYPE);
-
-    try
-    {
-      final String data = getDataFromDatabase(queriesParam, queries);
-      response.setWriteCallback(new WriteCallback()
-      {
-        public void writeData(Attributes attributes)
-        {
-          attributes.getResponse().write(data);
-        }
-      });
-    }
-    catch (Exception ex)
-    {
-      response.setContentType("text/plain");
-      response.setError(500, ex.getClass().getSimpleName() + ": " + ex.getMessage());
-      ex.printStackTrace();
-    }
-    return response;
+		final WebResponse webResponse = (WebResponse) attributes.getResponse();
+		webResponse.setContentLength(data.length);
+		webResponse.setContentType(HelloJsonResponse.APPLICATION_JSON);
+		webResponse.write(data);
+	  } 
+	  catch (Exception ex)
+	  {
+		WebResponse response = (WebResponse) attributes.getResponse();
+		
+		response.setContentType(TEXT_PLAIN);
+		response.setStatus(500);
+		response.write(ex.getClass().getSimpleName() + ": " + ex.getMessage());
+		
+		ex.printStackTrace();
+	  }
   }
-
-  private String getDataFromDatabase(final StringValue queriesParam, final int queries)
+  
+  private byte[] getDataFromDatabase(final StringValue queriesParam, final int queries)
       throws SQLException, JsonProcessingException
   {
     final ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -83,16 +80,16 @@ public class HelloDbResponse extends AbstractResource
       }
     }
 
-    String data;
+    byte[] data;
     if (queriesParam.isNull())
     {
       // request to /db should return JSON object
-      data = HelloDbResponse.mapper.writeValueAsString(worlds[0]);
+      data = HelloJsonResponse.MAPPER.writeValueAsBytes(worlds[0]);
     }
     else
     {
       // request to /db?queries=xyz should return JSON array (issue #648)
-      data = HelloDbResponse.mapper.writeValueAsString(worlds);
+      data = HelloJsonResponse.MAPPER.writeValueAsBytes(worlds);
     }
     return data;
   }

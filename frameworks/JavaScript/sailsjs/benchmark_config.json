@@ -2,7 +2,6 @@
   "framework": "sailsjs",
   "tests": [{
     "default": {
-      "setup_file": "setup",
       "json_url": "/json",
       "db_url": "/mysql/db",
       "query_url": "/mysql/queries?queries=",
@@ -12,9 +11,10 @@
       "port": 8080,
       "approach": "Realistic",
       "classification": "Fullstack",
-      "database": "None",
-      "framework": "sailsjs",
+      "database": "MySQL",
+      "framework": "None",
       "language": "JavaScript",
+      "flavor": "NodeJS",
       "orm": "Micro",
       "platform": "nodejs",
       "webserver": "None",
@@ -22,20 +22,20 @@
       "database_os": "Linux",
       "display_name": "Sails.js",
       "notes": "",
-      "versus": "node"
+      "versus": "nodejs"
     },
     "postgres": {
-      "setup_file": "setup",
       "db_url": "/postgres/db",
       "query_url": "/postgres/queries?queries=",
-      "fortune_url": "/postgres/fortunes",
       "update_url": "/postgres/updates?queries=",
+      "fortune_url": "/postgres/fortunes",
       "port": 8080,
       "approach": "Realistic",
       "classification": "Fullstack",
       "database": "Postgres",
-      "framework": "sailsjs",
+      "framework": "None",
       "language": "JavaScript",
+      "flavor": "NodeJS",
       "orm": "Full",
       "platform": "nodejs",
       "webserver": "None",
@@ -43,28 +43,7 @@
       "database_os": "Linux",
       "display_name": "Sails.js",
       "notes": "",
-      "versus": "node"
-    },
-    "redis": {
-      "setup_file": "setup",
-      "db_url": "/hiredis/db",
-      "query_url": "/hiredis/queries?queries=",
-      "fortune_url": "/hiredis/fortunes",
-      "update_url": "/hiredis/updates?queries=",
-      "port": 8080,
-      "approach": "Realistic",
-      "classification": "Fullstack",
-      "database": "Redis",
-      "framework": "sailsjs",
-      "language": "JavaScript",
-      "orm": "Full",
-      "platform": "nodejs",
-      "webserver": "None",
-      "os": "Linux",
-      "database_os": "Linux",
-      "display_name": "Sails.js",
-      "notes": "",
-      "versus": "node"
+      "versus": "nodejs"
     }
   }]
 }

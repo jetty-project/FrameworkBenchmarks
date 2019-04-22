@@ -1,102 +1,49 @@
 package example
 
-import java.util.Date
-import java.text.SimpleDateFormat
-
-import akka.actor.{Actor, ActorRef, Props}
-import akka.util.ByteString
-import scala.concurrent.duration._
-import colossus.IOSystem
-import colossus.core.{ServerRef, ServerSettings}
-import colossus.service._
+import akka.actor.ActorSystem
+import colossus.core._
 import colossus.protocols.http._
+import colossus.service._
+import colossus.service.Callback.Implicits._
+import colossus.service.GenRequestHandler.PartialHandler
+import colossus.util.DataSize
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import net.liftweb.json._
-import JsonDSL._
+import scala.concurrent.duration.Duration
 
-object BenchmarkService {
-
-  class Timestamp(server: ServerRef) extends Actor {
-        
-    val sdf = new SimpleDateFormat("EEE, MMM d yyyy HH:MM:ss z")
-    case object Tick
-    import context.dispatcher
-
-    override def preStart() {
-      self ! Tick
-    }
-
-    def receive = {
-      case Tick => {
-        server.delegatorBroadcast(sdf.format(new Date()))
-        context.system.scheduler.scheduleOnce(1.second, self, Tick)
-      }
-    }
-  }
-  val response          = ByteString("Hello, World!")
-  val plaintextHeader   = ("Content-Type", "text/plain")
-  val jsonHeader        = ("Content-Type", "application/json")
-  val serverHeader      = ("Server", "Colossus")
-
-
-  def start(port: Int)(implicit io: IOSystem) {
-
-    val serverConfig = ServerSettings(
-      port = port,
-      maxConnections = 16384,
-      tcpBacklogSize = Some(1024)
-    )
-    val serviceConfig = ServiceConfig(
-      name = "/sample",
-      requestTimeout = Duration.Inf,
-      requestMetrics = false
-    )
-
-    val server = Service.serve[Http](serverConfig, serviceConfig) { context =>
-
-      ///the ??? is filled in almost immediately by the actor
-      var dateHeader = ("Date", "???")
-
-      context.receive {
-        case ts: String => dateHeader = ("Date", ts)
-      }
-      
-      context.handle { connection =>
-        connection.become{ case request =>
-          if (request.head.url == "/plaintext") {
-            val res = HttpResponse(
-              version  = HttpVersion.`1.1`,
-              code    = HttpCodes.OK,
-              data    = response,
-              headers = Vector(plaintextHeader, serverHeader, dateHeader)
-            )
-            Callback.successful(res)
-          } else if (request.head.url == "/json") {
-            val json = ("message" -> "Hello, World!")
-            val res = HttpResponse(
-              version  = HttpVersion.`1.1`,
-              code    = HttpCodes.OK,
-              data    = compact(render(json)),
-              headers = Vector(jsonHeader, serverHeader, dateHeader)
-            )
-            Callback.successful(res)
-          } else {
-            Callback.successful(request.notFound("invalid path"))
-          }
-        }
-      }
-    }
-
-    val timestamp = io.actorSystem.actorOf(Props(classOf[Timestamp], server))
-  }
-
-}
-
+case class Message(message: String)
 
 object Main extends App {
 
-  implicit val io_system = IOSystem()
+  val serverConfig = ServerSettings(
+    port = 9007,
+    maxConnections = 16384,
+    tcpBacklogSize = Some(1024))
 
-  BenchmarkService.start(9007)
+  val serviceConfig = ServiceConfig(
+    logErrors = false,
+    requestMetrics = false,
+    requestTimeout = Duration("1s"),
+    requestBufferSize = 65536,
+    maxRequestSize = DataSize(1024 * 1024))
 
+  implicit val actorSystem: ActorSystem = ActorSystem()
+  implicit val ioSystem: IOSystem = IOSystem()
+
+  implicit val codec: JsonValueCodec[Message] = JsonCodecMaker.make[Message](CodecMakerConfig())
+
+  implicit val messageEncoder: HttpBodyEncoder[Message] = new HttpBodyEncoder[Message] {
+    override def encode(data: Message): HttpBody = new HttpBody(writeToArray(data))
+    override def contentType: String = "application/json"
+  }
+
+  HttpServer.start("Colossus", serverConfig)(initContext => new Initializer(initContext) {
+    override def onConnect: RequestHandlerFactory = serverContext => new RequestHandler(serverContext, serviceConfig) {
+      override def handle: PartialHandler[Http] = {
+        case req if req.head.url == "/plaintext" => req.ok("Hello, World!")
+        case req if req.head.url == "/json" => req.ok(Message("Hello, World!"))
+      }
+    }
+  })
 }

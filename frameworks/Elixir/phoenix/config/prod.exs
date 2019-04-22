@@ -2,16 +2,26 @@ use Mix.Config
 
 config :hello, Hello.Endpoint,
   url: [host: "0.0.0.0"],
-  http: [port: 8080],
+  http: [port: 8080, protocol_options: [max_keepalive: :infinity], backlog: 8096],
   cache_static_lookup: false,
+  check_origin: false,
+  debug_errors: false,
+  code_reloader: false,
   server: true
 
 config :hello, Hello.Repo,
-  adapter: Ecto.Adapters.MySQL,
   username: "benchmarkdbuser",
   password: "benchmarkdbpass",
   database: "hello_world",
-  hostname: "localhost"
+  hostname: "tfb-database",
+  pool_size: 256
+
+config :logger,
+  compile_time_purge_matching: [
+    [level_lower_than: :error]
+  ],
+  level: :error,
+  backends: []
 
 # ## SSL Support
 #
@@ -26,22 +36,3 @@ config :hello, Hello.Repo,
 #
 # Where those two env variables point to a file on
 # disk for the key and cert.
-
-
-# Do not pring debug messages in production
-config :logger, level: :info
-
-# ## Using releases
-#
-# If you are doing OTP releases, you need to instruct Phoenix
-# to start the server for all endpoints:
-#
-#    config :phoenix, :serve_endpoints, true
-#
-# Alternatively, you can configure exactly which server to
-# start per endpoint:
-#
-#     config :hello, Hello.Endpoint, server: true
-#
-
-import_config "prod.secret.exs"

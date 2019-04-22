@@ -1,50 +1,34 @@
 package app.controllers;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.google.inject.Inject;
 
 import app.db.DbManager;
-import app.models.World;
-import net.javapla.jawn.core.ApplicationController;
+import app.helpers.Helper;
+import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.Param;
 
-public class DbController extends ApplicationController {
+public class DbController extends Controller {
 
-    private static final int NUMBER_OF_ROWS = 10_000;
-    
     @Inject
     private DbManager db;
     
+    // /db
     public void index() {
-        respond().json(db.getWorld(getRandomNumber()));
+        respond().json(db.getWorld(Helper.getRandomNumber())).addHeader("Server", "jawn");
     }
     
+    // /queries?queries=
     public void getQueries() {
         int param = parseQueryParam();
-        
-        World[] worlds = new World[param];
-        for (int i = 0; i < param; i++) {
-            worlds[i] = db.getWorld(getRandomNumber());
-        }
-        respond().json(worlds);
+
+        respond().json(db.getWorlds(param)).addHeader("Server", "jawn");
     }
     
+    // /updates?queries=
     public void getUpdates() {
         int param = parseQueryParam();
-        
-        World[] worlds = new World[param];
-        for (int i = 0; i < param; i++) {
-            World world = db.getWorld(getRandomNumber());
-            world.randomNumber = getRandomNumber();
-            worlds[i] = world;
-        }
-        db.updateWorlds(worlds);
-        respond().json(worlds);
-    }
-    
-    private int getRandomNumber() {
-        return ThreadLocalRandom.current().nextInt(NUMBER_OF_ROWS) + 1;
+
+        respond().json(db.getAndUpdateWorlds(param)).addHeader("Server", "jawn");
     }
     
     private int parseQueryParam() {

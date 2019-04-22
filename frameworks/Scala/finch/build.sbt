@@ -1,16 +1,17 @@
+lazy val finchVersion = "0.27.0"
+
 name := """techempower-benchmarks-finch"""
-
-version := "0.0.1-SNAPSHOT"
-
-scalaVersion := "2.11.6"
-
-com.github.retronym.SbtOneJar.oneJarSettings
-
-mainClass in (Compile, run) := Some("WebServer")
+version := finchVersion
+scalaVersion := "2.12.7"
 
 libraryDependencies ++= Seq(
-  "com.github.finagle" %% "finch-core" % "0.7.0",
-  "com.github.finagle" %% "finch-argonaut" % "0.7.0"
+  "com.github.finagle" %% "finchx-core" % finchVersion,
+  "com.github.finagle" %% "finchx-circe" % finchVersion
 )
 
-resolvers += Resolver.sonatypeRepo("snapshots")
+assemblyJarName in assembly := "finch-benchmark.jar"
+assemblyMergeStrategy in assembly := {
+ case PathList("META-INF", "services", _*) => MergeStrategy.last
+ case PathList("META-INF", _*) => MergeStrategy.discard
+ case _ => MergeStrategy.first
+}

@@ -11,7 +11,7 @@ var Sequelize = require('sequelize')
 var sequelize = new Sequelize(
   'hello_world', 'benchmarkdbuser', 'benchmarkdbpass',
   {
-    host: '127.0.0.1',
+    host: 'tfb-database',
     dialect: 'mysql',
     pool: {
       max: 5000,
@@ -23,29 +23,35 @@ var sequelize = new Sequelize(
   })
 
 
-var Worlds = sequelize.define('World', {
-  id: Sequelize.INTEGER,
+var Worlds = sequelize.define('world', {
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true
+  },
   randomNumber: Sequelize.INTEGER
 },
-{
-  // prevents sequelize from assuming the table is called 'Worlds'
-  freezeTableName: true,
-  timestamps: false
-})
+  {
+    // prevents sequelize from assuming the table is called 'Worlds'
+    freezeTableName: true,
+    timestamps: false
+  })
 
 
 var Fortunes = sequelize.define('Fortune', {
-  id: Sequelize.INTEGER,
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true
+  },
   message: Sequelize.STRING
 },
-{
-  // prevents sequelize from assuming the table is called 'Fortunes'
-  freezeTableName: true,
-  timestamps: false
-})
+  {
+    // prevents sequelize from assuming the table is called 'Fortunes'
+    freezeTableName: true,
+    timestamps: false
+  })
 
 
-var randomWorldPromise = function() {
+var randomWorldPromise = function () {
   var promise = Worlds
     .findOne({
       where: { id: h.randomTfbNumber() }
@@ -59,7 +65,8 @@ var randomWorldPromise = function() {
   return promise
 }
 
-var updateWorld = function(world) {
+var updateWorld = function (world) {
+  world.randomNumber = h.randomTfbNumber()
   var promise = Worlds
     .update(
       { randomNumber: world.randomNumber },
@@ -80,7 +87,7 @@ module.exports = {
   /**
    * Test 2: Single Database Query
    */
-  Single: function(req, res) {
+  Single: function (req, res) {
     randomWorldPromise()
       .then(function (world) {
         res.json(world)
@@ -91,7 +98,7 @@ module.exports = {
   /**
    * Test 3: Multiple Database Query
    */
-  Multiple: function(req, res) {
+  Multiple: function (req, res) {
     var queries = h.getQueries(req)
     var toRun = []
 
@@ -110,11 +117,11 @@ module.exports = {
   /**
    * Test 4: Fortunes
    */
-  Fortunes: function(req, res) {
+  Fortunes: function (req, res) {
     Fortunes
       .findAll()
       .then(function (fortunes) {
-        fortunes.push(h.ADDITIONAL_FORTUNE)
+        fortunes.push(h.additionalFortune())
         fortunes.sort(function (a, b) {
           return a.message.localeCompare(b.message)
         })
@@ -129,7 +136,7 @@ module.exports = {
   /**
    * Test 5: Database Updates
    */
-  Updates: function(req, res) {
+  Updates: function (req, res) {
     var queries = h.getQueries(req);
     var worldPromises = [];
 
@@ -149,6 +156,6 @@ module.exports = {
         process.exit(1)
       })
   }
-  
+
 };
 
