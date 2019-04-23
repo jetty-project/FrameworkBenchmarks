@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpHeader;
-import org.eclipse.jetty.http.PreEncodedHttpField;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.ajax.JSON;
@@ -16,7 +15,7 @@ import org.eclipse.jetty.util.ajax.JSON;
 public class JsonHandler extends AbstractHandler
 {
     private JSON json = new JSON();
-    HttpField contentType = new PreEncodedHttpField(HttpHeader.CONTENT_TYPE, "application/json");
+    HttpField contentType = new HttpField(HttpHeader.CONTENT_TYPE, "application/json");
 
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException
