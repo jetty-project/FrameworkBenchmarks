@@ -2,9 +2,6 @@ package hello.handler;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -19,13 +16,13 @@ import org.eclipse.jetty.util.BufferUtil;
 public class PlainTextHandler extends AbstractHandler
 {
     ByteBuffer helloWorld = BufferUtil.toBuffer("Hello, World!");
-    HttpField contentType = new PreEncodedHttpField(HttpHeader.CONTENT_TYPE,MimeTypes.Type.TEXT_PLAIN.asString());
+    HttpField contentType = new PreEncodedHttpField(HttpHeader.CONTENT_TYPE, MimeTypes.Type.TEXT_PLAIN.asString());
 
     @Override
-    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
+    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException
     {
         baseRequest.setHandled(true);
-        baseRequest.getResponse().getHttpFields().add(contentType); 
+        baseRequest.getResponse().getHttpFields().add(contentType);
         baseRequest.getResponse().getHttpOutput().sendContent(helloWorld.slice());
     }
 }

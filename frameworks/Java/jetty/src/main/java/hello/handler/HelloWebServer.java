@@ -1,26 +1,21 @@
 package hello.handler;
 
 import java.io.IOException;
-
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.handler.AbstractHandlerContainer;
-
 
 /**
  * An implementation of the TechEmpower benchmark tests using the Jetty web
- * server.  
+ * server.
  */
-public final class HelloWebServer 
+public final class HelloWebServer
 {
     public static void main(String[] args) throws Exception
     {
@@ -36,12 +31,12 @@ public final class HelloWebServer
         server.start();
         server.join();
     }
-    
+
     public static class PathHandler extends AbstractHandler
     {
-        JsonHandler _jsonHandler=new JsonHandler();
-        PlainTextHandler _plainHandler=new PlainTextHandler();
-        
+        JsonHandler _jsonHandler = new JsonHandler();
+        PlainTextHandler _plainHandler = new PlainTextHandler();
+
         public PathHandler()
         {
             addBean(_jsonHandler);
@@ -57,13 +52,17 @@ public final class HelloWebServer
         }
 
         @Override
-        public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
+        public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException
         {
             if ("/plaintext".equals(target))
-                _plainHandler.handle(target,baseRequest,request,response);
+            {
+                _plainHandler.handle(target, baseRequest, request, response);
+            }
             else if ("/json".equals(target))
-                _jsonHandler.handle(target,baseRequest,request,response);
+            {
+                _jsonHandler.handle(target, baseRequest, request, response);
+            }
         }
-        
+
     }
 }

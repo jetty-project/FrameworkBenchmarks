@@ -6,12 +6,11 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
-
 /**
  * An implementation of the TechEmpower benchmark tests using the Jetty web
- * server.  
+ * server.
  */
-public final class HelloWebServerServlet 
+public final class HelloWebServerServlet
 {
 
     public static void main(String[] args) throws Exception
@@ -22,13 +21,13 @@ public final class HelloWebServerServlet
         config.setSendDateHeader(true);
         config.setSendServerVersion(true);
 
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SECURITY|ServletContextHandler.NO_SESSIONS);
+        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SECURITY | ServletContextHandler.NO_SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
 
-        context.addServlet(org.eclipse.jetty.servlet.DefaultServlet.class,"/");
-        context.addServlet(JsonServlet.class,"/json");
-        context.addServlet(PlaintextServlet.class,"/plaintext");
+        context.addServlet(org.eclipse.jetty.servlet.DefaultServlet.class, "/");
+        context.addServlet(JsonServlet.class, "/json");
+        context.addServlet(PlaintextServlet.class, "/plaintext");
 
         server.start();
         server.join();
