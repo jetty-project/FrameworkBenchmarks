@@ -1,4 +1,4 @@
-FROM buildpack-deps:bionic
+FROM buildpack-deps:xenial
 
 WORKDIR /wrk
 RUN curl -sL https://github.com/wg/wrk/archive/4.1.0.tar.gz | tar xz --strip-components=1
