@@ -4,7 +4,7 @@ COPY pom.xml pom.xml
 COPY src src
 RUN mvn clean install -q
 
-FROM openjdk:10-jre-slim
+FROM openjdk:11.0.3-jre-slim
 WORKDIR /jetty
 COPY --from=maven /jetty/target/jetty-example-0.1.jar app.jar
 COPY --from=maven /jetty/target/libs libs
