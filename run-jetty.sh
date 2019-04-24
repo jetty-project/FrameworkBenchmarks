@@ -8,6 +8,10 @@ do
   echo $VER
   cat frameworks/Java/jetty/pom-template.xml | sed -e "s/@JETTYVER@/$VER/g" > frameworks/Java/jetty/pom.xml
   grep jetty.version\> frameworks/Java/jetty/pom.xml
-  ./tfb --mode benchmark --results-name=$VER --results-environment="$ENVID" --test jetty
+  ./tfb --mode benchmark \
+        --test jetty \
+        --duration 60 \
+        --results-name=$VER \
+        --results-environment="$ENVID"
 done
 
